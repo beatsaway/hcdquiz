@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>📋 Organize the Design Steps</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            line-height: 1.6;
+            padding: 5px;
+        }
+        .container {
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+            padding: 10px;
+            width: 100%;
+            max-width: 900px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            color: #2c3e50;
+        }
+        .drop-zones {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 5px;
+            margin-bottom: 25px;
+        }
+        .drop-zone {
+            border: 2px dashed #bdc3c7;
+            border-radius: 8px;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            background-color: #ecf0f1;
+            position: relative;
+            padding: 15px;
+            text-align: center;
+        }
+        .drop-zone::after {
+            content: attr(data-order);
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: #3498db;
+            color: #fff;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+        .drop-zone.filled { 
+            border-style: solid; 
+            border-color: #95a5a6; 
+            background-color: #fff; 
+        }
+        .drop-zone.correct {
+            border-color: #27ae60;
+            background-color: #e8f8f5;
+            color: #27ae60;
+        }
+        .drop-zone.incorrect {
+            border-color: #e74c3c;
+            background-color: #fdecea;
+            color: #e74c3c;
+        }
+        .draggable-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            justify-content: center;
+        }
+        .draggable-item {
+            background-color: #fff;
+            border: 1px solid #bdc3c7;
+            color: #2c3e50;
+            padding: 15px 25px;
+            border-radius: 6px;
+            cursor: grab;
+            font-size: 0.9rem;
+            text-align: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            width: calc(80% - 15px);
+        }
+        .draggable-item.placed-correctly {
+            background-color: #e8f8f5;
+            border-color: #27ae60;
+            color: #27ae60;
+            cursor: default;
+        }
+        .draggable-item:hover { 
+            background-color: #f0f3f5; 
+            border-color: #95a5a6; 
+        }
+        .draggable-item:active { 
+            opacity: 0.8; 
+            transform: scale(0.98); 
+        }
+        @media (max-width: 768px) {
+            .drop-zones { grid-template-columns: 1fr 1fr; }
+            .draggable-item { width: calc(50% - 15px); }
+        }
+        @media (max-width: 500px) {
+            .drop-zones { grid-template-columns: 1fr; }
+            .draggable-item { width: 100%; }
+            .drop-zone::after { top: 5px; right: 5px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="drop-zones">
+            <div class="drop-zone" data-order="1"></div>
+            <div class="drop-zone" data-order="2"></div>
+            <div class="drop-zone" data-order="3"></div>
+            <div class="drop-zone" data-order="4"></div>
+        </div>
+        <div class="draggable-items">
+            <div class="draggable-item" draggable="true" data-order="3">💡Design a solution based on user preferences</div>
+            <div class="draggable-item" draggable="true" data-order="1">🔍Identify your target users</div>
+            <div class="draggable-item" draggable="true" data-order="2">🧠Understand target users and their problem</div>
+            <div class="draggable-item" draggable="true" data-order="4">😊Users like it, purchase it, and use it</div>
+        </div>
+    </div>
+
+    <script>
+        const draggableItems = document.querySelectorAll('.draggable-item');
+        const dropZones = document.querySelectorAll('.drop-zone');
+
+        let draggedItem = null;
+
+        draggableItems.forEach(item => {
+            item.addEventListener('dragstart', dragStart);
+            item.addEventListener('dragend', dragEnd);
+        });
+
+        dropZones.forEach(zone => {
+            zone.addEventListener('dragover', dragOver);
+            zone.addEventListener('drop', drop);
+        });
+
+        function dragStart(e) {
+            draggedItem = this;
+            setTimeout(() => {
+                this.style.opacity = '0.5';
+            }, 0);
+        }
+
+        function dragEnd() {
+            this.style.opacity = '1';
+            draggedItem = null;
+        }
+
+        function dragOver(e) {
+            e.preventDefault();
+        }
+
+        function drop() {
+            if (draggedItem) {
+                const existingItem = this.querySelector('.draggable-item');
+                if (existingItem) {
+                    document.querySelector('.draggable-items').appendChild(existingItem);
+                    existingItem.classList.remove('placed-correctly');
+                }
+
+                this.appendChild(draggedItem);
+                this.classList.add('filled');
+                this.classList.remove('incorrect', 'correct');
+
+                const itemOrder = draggedItem.getAttribute('data-order');
+                const zoneOrder = this.getAttribute('data-order');
+
+                if (itemOrder === zoneOrder) {
+                    this.classList.add('correct');
+                    draggedItem.classList.add('placed-correctly');
+                } else {
+                    this.classList.add('incorrect');
+                    draggedItem.classList.remove('placed-correctly');
+                }
+            }
+        }
+
+        function shuffleDraggableItems() {
+            const container = document.querySelector('.draggable-items');
+            const items = Array.from(container.children).filter(child => child.classList.contains('draggable-item'));
+            for (let i = items.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                container.appendChild(items[j]);
+            }
+        }
+
+        window.addEventListener('load', () => {
+            shuffleDraggableItems();
+        });
+    </script>
+</body>
+</html>
